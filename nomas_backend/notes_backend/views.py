@@ -1,15 +1,18 @@
 import datetime
 from django.shortcuts import render
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+from rest_framework.decorators import api_view
 from .models import Note
 from .serializers import NoteSerializer
 from rest_framework.response import Response
 
+#for some reason DELETE button is shown in all methods, altho it doesn't work (gives error) due to lack of id / object.
 # Create your views here.
 class NoteViewSet(viewsets.ModelViewSet):
     """API endpoints related to the Note model"""
     queryset = Note.objects.all()
     serializer_class = NoteSerializer
+    
     
     # GET method
     def list(self, request):
@@ -42,3 +45,24 @@ class NoteViewSet(viewsets.ModelViewSet):
         model.save()
 
         return Response({'message': "Voila! Note created successfully"}, status=201)
+
+    #DELETE method
+    #page will still load even if note id doesn't exist; will only show error when you press DELETE
+    def delete(self, request, id):
+        note = Note.objects.get(id=id)
+        note.delete()
+        return Response(status=status.HTTP_202_ACCEPTED)
+
+
+    #PUT method
+    #page will still load even if  note id doesn't exist; will only show error when you press PUT.
+    def update(self, request, id):
+        note = Note.objects.get(id=id)
+        data1 = NoteSerializer(instance=note, data=request.data)
+    
+        if data1.is_valid():
+            data1.save()
+            return Response(data1.data)
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
