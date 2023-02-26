@@ -49,6 +49,11 @@ class NoteViewSet(viewsets.ModelViewSet):
     #DELETE method
     #page will still load even if note id doesn't exist; will only show error when you press DELETE
     def delete(self, request, id):
+        #checks for valid ids
+        notes = list(self.get_queryset())
+        if not any(n.id == id for n in notes):
+            return Response({'message': "Whoa! Note doesn't exist, buddy"}, status=404)
+
         note = Note.objects.get(id=id)
         note.delete()
         return Response(status=status.HTTP_202_ACCEPTED)
@@ -57,7 +62,13 @@ class NoteViewSet(viewsets.ModelViewSet):
     #PUT method
     #page will still load even if  note id doesn't exist; will only show error when you press PUT.
     def update(self, request, id):
+        #checks for valid ids
+        notes = list(self.get_queryset())
+        if not any(n.id == id for n in notes):
+            return Response({'message': "Whoa! Note doesn't exist, buddy"}, status=404)
+
         note = Note.objects.get(id=id)
+        
         data1 = NoteSerializer(instance=note, data=request.data)
     
         if data1.is_valid():
