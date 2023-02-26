@@ -5,6 +5,7 @@ from rest_framework.decorators import api_view
 from .models import Note
 from .serializers import NoteSerializer
 from rest_framework.response import Response
+from rest_framework.renderers import JSONRenderer
 
 #for some reason DELETE button is shown in all methods, altho it doesn't work (gives error) due to lack of id / object.
 # Create your views here.
@@ -18,33 +19,23 @@ class NoteViewSet(viewsets.ModelViewSet):
     def list(self, request):
         """List all notes"""
         notes = list(self.get_queryset())
-        result = []
-        for note in notes:
-            result.append(dict(
-                id = note.id,
-                title = note.title,
-                content = note.content,
-                created_at = note.created_at,
-                last_modified = note.last_modified,
-            ))
-
-        return Response(result)
+        serializer = NoteSerializer(notes, many=True)
+        json = JSONRenderer().render(serializer.data)
+        return Response(json)
 
     # POST method
     def create(self, request):
-        if not all(x in request.data for x in ['title', 'content']):
-            return Response({'error': "Missing fields. Must include 'title', 'content'."}, status=400)
+    
+      serializer = NoteSerializer(data={'title':request.data['title'] , 'content': request.data['content']})
+      
+      if serializer.is_valid():   
+            model = Note(**serializer.data)
+            model.save()
+            return Response({'Message': 'Voila! Note created successfully'}, status=201)
+      else:
+          return Response({'Error': "Missing fields. Must include 'title'"}, status=400)
 
-        note_creation_data = dict(
-            title = request.data['title'],
-            content = request.data['content'],
-        )
 
-        model = Note(**note_creation_data)
-
-        model.save()
-
-        return Response({'message': "Voila! Note created successfully"}, status=201)
 
     #DELETE method
     #page will still load even if note id doesn't exist; will only show error when you press DELETE
