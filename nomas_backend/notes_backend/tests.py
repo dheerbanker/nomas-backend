@@ -47,7 +47,8 @@ class Testviews(TestCase):
 
     def test_Note_delete_DELETE(self):
         response = self.client.delete(reverse('delete', args=[24]))
-        # print(response.status_code)
+        #print(response.status_code)
+        self.assertEquals(response.status_code, 200)
        
         if Note.objects.filter(id=24).exists():
           raise FileExistsError
